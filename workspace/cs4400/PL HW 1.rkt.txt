@@ -1,0 +1,98 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-reader.ss" "lang")((modname |PL HW 1|) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ())))
+; A Bit is either:
+; - 0 or
+; - 1
+
+; A Natural is a non-negative Integer.
+
+; A SLoN is a [List-of Number] where the members of the list are in
+; ascending order.
+
+
+; bin4-to-num : Bit Bit Bit Bit -> Natural
+;
+; Given four bits with the least significant digit first, returns the
+; corresponding integer.
+;
+; 1011 -> 13, for example.
+;
+(define (bin4-to-num d0 d1 d2 d3)
+  (+ d0 (* d1 2) (* d2 4) (* d3 8)))
+
+(equal? (bin4-to-num 0 0 0 0) 0)
+(equal? (bin4-to-num 1 0 0 0) 1)
+(equal? (bin4-to-num 0 1 0 0) 2)
+(equal? (bin4-to-num 0 0 1 0) 4)
+(equal? (bin4-to-num 0 0 0 1) 8)
+(equal? (bin4-to-num 1 1 0 1) 11)
+(equal? (bin4-to-num 1 0 1 1) 13)
+
+
+; gcd2 : Natural Natural -> Natural
+; Calculate the greatest common deviser for `a` and `b` using the
+; Binary GCD algorithm.
+;
+(define (gcd2 a b)
+  (cond
+    [(= a 0) b]
+    [(= b 0) a]
+    [(and (even? a) (even? b)) (* 2 (gcd2 (/ a 2) (/ b 2)))]
+    [(and (even? a) (odd? b)) (gcd2 (/ a 2) b)]
+    [(and (odd? a) (even? b)) (gcd2 a (/ b 2))]
+    [(and (odd? a) (odd? b) (>= a b)) (gcd2 (/ (- a b) 2) b)]
+    [(and (odd? a) (odd? b) (< a b)) (gcd2 (/ (- b a) 2) a)]))
+
+(equal? (gcd2 0 1337) 1337)
+(equal? (gcd2 1337 0) 1337)
+(equal? (gcd2 2 4) (* 2 (gcd2 1 2)))
+(equal? (gcd2 2 5) (gcd2 1 5))
+(equal? (gcd2 5 10) (gcd2 5 5))
+(equal? (gcd2 9 7) (gcd2 (/ (- 9 7) 2) 7))
+(equal? (gcd2 7 9) (gcd2 (/ (- 9 7) 2) 7))
+(equal? (gcd2 10 17) 1)
+(equal? (gcd2 17 10) 1)
+(equal? (gcd2 60 10) 10)
+(equal? (gcd2 30 45) 15)
+
+
+; whycantiuselambda : Integer Boolean -> Boolean
+; So, because <insert some reason here>, we can't use lambda,
+; I made this function to return the `and` of an accumulation and
+; the evenness of an element, for use with `foldl` in `all-even?`.
+(define (whycantiuselambda e r)
+  (and (even? e) r))
+
+; all-even? : [List-of Integer] -> Boolean
+; Returns true, when all members of the given list are even.
+;
+(define (all-even? list)
+  (foldl whycantiuselambda #t list))
+
+(all-even? '())
+(all-even? (list 2 4 6 8))
+(not (all-even? (list 1)))
+(not (all-even? (list 1 3 5 7)))
+
+; merge-lists : SLoN SLoN -> SLoN
+; Returns a sorted list of numbers with all of the members of both `a`
+; and `b`.
+;
+(define (merge-lists a b)
+  (cond
+    [(empty? a) b]
+    [(empty? b) a]
+    [(< (first a) (first b)) (cons (first a) (merge-lists (rest a) b))]
+    [#t (cons (first b) (merge-lists a (rest b)))]))
+
+(equal? (merge-lists '() '()) '())
+(equal? (merge-lists (list 1 2 3) '()) (list 1 2 3))
+(equal? (merge-lists '() (list 1 2 3)) (list 1 2 3))
+(equal? (merge-lists (list 1 4 8) (list 2 3 6)) (list 1 2 3 4 6 8))
+(equal? (merge-lists (list 1 4 8 10 30) (list 2 3 6)) (list 1 2 3 4 6 8 10 30))
+
+
+(define my-picture 12)
+(define my-other-pictures (list 79))
+(define minutes-spent 100)

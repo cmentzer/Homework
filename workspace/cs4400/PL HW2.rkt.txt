@@ -1,0 +1,125 @@
+;;Clayton Mentzer
+;;CS 4400: Programming Languages
+;;Thursday, 18 September 2014
+;;Homework 2
+
+#lang pl 02
+
+;; The function sequence recieves a function 'f' and two values 'first' and
+;; 'last'. The function returns a list of values that starts with 'first' and
+;; ends with 'last', and for each consecutive pair of values a1, a2 in the list
+;; f(a1) results in a2. 
+
+(: sequence : (All (A) (A -> A) A A -> (Listof A)))
+
+(define (sequence func a1 a2)
+  (cond [(equal? a1 a2) (cons a1 '())]
+        [else (cons a1 (sequence func (func a1) a2))]))
+
+(test (sequence add1 1 1) => (list 1))
+(test (sequence add1 1 5) => (list 1 2 3 4 5))
+(test (sequence sub1 5 1) => (list 5 4 3 2 1))
+(test (sequence sqrt 65536 2) => (list 65536 256 16 4 2))
+(test (sequence not #f #t) => (list #f #t))
+(test (sequence (inst rest Number) (list 1 2 3) null)
+      => (list (list 1 2 3) (list 2 3) (list 3) null))
+
+;; Implementation of a set of integers
+;; A (possibly sparse) set of integers is one of:
+;;     - A single integer
+;;     - An inclusive range of integers
+;;     - A combination of two integer sets
+
+(define-type INTSET
+  [Num Integer]
+  [Range Integer Integer]
+  [2Sets INTSET INTSET])
+
+;; An INTSET is said to be normal if no numbers overlap,
+;; all ranges are comprised of two numbers where the first is 
+;; smaller than the second, and when a union of 2Sets is made up
+;; of two sets where the set on the left is entirely lower than 
+;; the set on the right. 
+
+;; Finds the minimal or maximal number of the given set based on
+;; an input parameter
+(: intset-min/max : INTSET (Integer Integer -> Boolean) -> Integer)
+(define (intset-min/max set func)
+  (cases set
+    [(Num n) n]
+    [(Range l r) (if (func l r) l r)]
+    [(2Sets a b) (let ([x (intset-min/max a func)]
+                       [y (intset-min/max b func)])
+                   (if (func x y) x y))]))
+
+;; Tests for intset-min/max 
+(test (intset-min/max (Num 5) >) => 5)
+(test (intset-min/max (Range 7 10) >) => 10)
+(test (intset-min/max (Range 15 5) >) => 15)
+(test (intset-min/max (Range 0 10) <) => 0)
+(test (intset-min/max (Range 10 2) <) => 2)
+(test (intset-min/max (2Sets (Num 5) (Range 10 15)) <) => 5)
+(test (intset-min/max (2Sets (Range 10 17) (Range 10 15)) <) => 10)
+(test (intset-min/max (2Sets (2Sets (Num 5) (Num 9)) (Range 10 15)) <) => 5)
+(test (intset-min/max (2Sets (2Sets (Num 5) (Num 16)) (Range 10 15)) >) => 16)
+
+;; Finds the minimal member of the given set.
+(: intset-min : INTSET -> Integer)
+(define (intset-min set) (intset-min/max set <))
+
+;; Tests for intset-min
+(test (intset-min (Range 0 10)) => 0)
+(test (intset-min (Range 10 2)) => 2)
+(test (intset-min (2Sets (Num 5) (Range 10 15))) => 5)
+(test (intset-min (2Sets (Range 10 17) (Range 10 15))) => 10)
+(test (intset-min (2Sets (2Sets (Num 5) (Num 9)) (Range 10 15))) => 5)
+
+;; Finds the maximal member of the given set.
+(: intset-max : INTSET -> Integer)
+(define (intset-max set) (intset-min/max set >))
+
+;; Tests for intset-max
+(test (intset-max (Num 5)) => 5)
+(test (intset-max (Range 7 10)) => 10)
+(test (intset-max (Range 15 5)) => 15)
+(test (intset-max (2Sets (2Sets (Num 5) (Num 16)) (Range 10 15))) => 16)
+
+;; intset-normalized? checks to see if an INTSET is in normal form:
+;; an INTSET is in normal form if: 
+;;    - no numbers are repeated
+;;    - the left number in all ranges is smaller than the right
+;;    - there is some gap between two subsets in a 2Set value
+(: intset-normalized? : INTSET -> Boolean)
+(define (intset-normalized? set)
+  (cases set
+    [(Num n) #t]
+    [(Range l r) (< l r)]
+    [(2Sets a b) (< (intset-max a) (intset-min b))]))
+
+(test (intset-normalized? (Num 5)) => #t)
+(test (intset-normalized? (Range 10 15)) => #t)
+(test (intset-normalized? (Range 15 15)) => #f)
+(test (intset-normalized? (Range -5 0)) => #t)
+(test (intset-normalized? (Range 4 -4)) => #f)
+(test (intset-normalized? (2Sets (Num 5) (Num 8))) => #t)
+(test (intset-normalized? (2Sets (Range 6 9) (Range 9 14))) => #f)
+(test (intset-normalized? (2Sets (2Sets (Num 8) (Num 10)) 
+                                 (Range 11 16))) => #t)
+(test (intset-normalized? (2Sets (2Sets (Num 10) (Num 8)) 
+                                 (Range 23 10))) => #f)
+(test (intset-normalized? (2Sets (Range 11 22) (Num 14))) => #f)
+(test (intset-normalized? (2Sets (Range 11 15) (Range 11 15))) => #f)
+
+
+#| BNF for the pages language
+   <pages>  ::= <int>
+              | <range>
+              | { <int> , <pages> }
+              | { <range> , <pages> }
+  
+   <range>  ::= <int> - <int> 
+
+
+|#
+
+(define minutes-spent 130)
