@@ -1,0 +1,54 @@
+Ronnie Brzezinski - ronbrz
+Clayton Mentzer  - cmentzer
+CS3600F13 - Systems and Networks
+Alan Mislove
+
+Project 4: Reliable Transport
+README
+
+APPROACH AND FUNTIONALITY: 
+
+	The approach to this project was pretty straightforward, because of 
+	the layout of the starter code and the nature of the milestone. The first
+	step was to build a packet that would be sent out and to ensure multiple 
+	packets could be sent per each acknowledgement. We followed the following
+	steps:
+
+		- fill packets with input from stdin
+		- build headers for those packets, and send them to the receiver
+		- wait for acknowledgement and react accordingly
+			-if we timeout, send the packets again
+			-if we get a sequence number other than the one
+			 we are looking for, we send again
+			-if we get the sequence number we are lookinf for
+			 we remove that packet from out window, fill the 
+			 window with a new packet, and send that packet
+		
+SOME CHALLENGES: 
+
+	We faced a number of difficult challenges as we moved through the
+	various stages of the project. As with (I imagine) most groups, there
+	was always the problem of meeting to work on the code together and
+	ensuring we each always had the latest versions of eachother's work
+	(we used git for this) up through the project milestone, after which
+	I (clayton mentzer) completed the project entirely on my own, because
+	Ronny withdrew from the class for medical reasons (please grade me 
+	gently)
+	
+	While the initial construction and sending of the first few packets
+	was relatively easy, recovering from dropped or reordered packets in
+	such a way that didn't ruin our efficiency and cause us to resend 
+	packets many times was a bit more difficult. 
+
+	We spent a lot of time stepping through the code manually using gdb 
+	to debug. 
+
+	One of the more challenging parts of this project was handling duplicate
+	packets in such a way that didn't cause us to spiral out of control, sending
+	two packets for each ack and two acks for each packet. 
+
+
+Project 4 Readme
+
+Clayton Mentzer and Ronny Brzezinski
+

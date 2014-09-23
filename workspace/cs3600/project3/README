@@ -1,0 +1,86 @@
+Ronnie Brzezinski - ronbrz
+Clayton Mentzer  - cmentzer
+CS3600F13 - Systems and Networks
+Alan Mislove
+
+13 November 2013
+Project 3: DNS Client
+README
+
+APPROACH AND FUNTIONALITY: 
+
+	The approach to this project was pretty straightforward, because of 
+	the layout of the starter code and the nature of the milestone. The first
+	step was to build a packet that would be sent out. This also helped 
+	us learn the structure of a packet, which made it easier to parse the 
+	response. The program takes the following steps: 
+
+		- read user input
+		- parse the input URL into the appropriate format
+		- build the outgoing packet using structures and the parsed URL
+		- send the outgoing packet to the DNS server given and wait 
+		- get a response
+		- break the response up into its parts, header, question, and
+			answers
+		- step through the answer to output the desired information
+		
+		The init_packet function takes in an address, and builds the 
+		outgoing packet. The input address is in the form of an already
+		parsed URL. It first builds a header structure, then a question
+		structure. It then memcopies the structs and the formatted URL
+		into a char* packet, and returns that packet to be sent.
+		
+		init_packet: char* -> char*
+
+		The dump_packet function was given. It creates a hex dump 
+		of a given packet. I did not modify this function in any way.
+		It takes in a packet string and the size of the string, and 
+		prints to stdout.
+			
+		dump_packet: char*, int -> void
+
+		The bulk of the program is found in parse_response. This function
+		takes in a packet and its size and interprets the information
+		in that packet, printing the desired information to stdout.
+		
+		It begins by copying the data in the packet over into several 
+		structures, one for the header and one for the question. It 
+ 		throws errors accordingly if the packet is found to be inproper
+		in any way. When it reaches the answer section it checks the 
+		header to see what type of answer to expect. If it is an IP it 
+		stores that IP and then prints it. If it is a CNAME it has to do 
+		more formatting and lookup any pointers to previous names, but
+		eventually it formats the CNAME and prints it. It then loops 
+		this process for any additional answer segments. It returns 0
+		on correct completion or -1 on error.
+
+		parse_response: char*, int -> int		
+
+		
+SOME CHALLENGES: 
+
+	We faced a number of difficult challenges as we moved through the
+	various stages of the project. As with (I imagine) most groups, there
+	was always the problem of meeting to work on the code together and
+	ensuring we each always had the latest versions of eachother's work
+	(we used git for this). 
+	
+	While the initial construction of the outgoing packet was relatively
+	easy, the interpretation of the packet we got back was considerably 
+	more difficult. 
+
+	We spent a lot of time stepping through the code manually using gdb 
+	to see the data stored in the packet on an octal level, and then 
+	we frequently compared this data to what we were expected to find
+	in the tests using dump_packet. 
+
+	One of the more challenging parts of this project was reading an alias
+	from a CNAME answer, and then interpreting the address to the domain 
+	names that followed it. This was partially difficult because of the 
+	nature of the address block, which always begins with 11, followed by 14
+	offset bits. 		
+
+
+I had a lot of fun with this project. 
+
+(actually)

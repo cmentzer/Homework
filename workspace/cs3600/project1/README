@@ -1,0 +1,131 @@
+Ronnie Brzezinski - ronbrz
+Clayton Mentzer  - cmentzer
+CS3600F13 - Systems and Networks
+Alan Mislove
+
+30 September 2013
+Project 1: Shell 
+README
+
+APPROACH AND FUNTIONALITY: 
+
+	My partner and I recognised that the first step to creating any program driven
+	primarily by user input would be the parsing of that input into something that
+	would be easily translatable to code. We decided to create two separate
+	functions: get_word and get args.
+	
+		The get_word function takes in two pointers to locations in
+		memory that represent the beginning of the input stromg (read
+		from stdin in main) and the current location in that string to
+		start at and returns the first word in that string after the
+		given location.
+		
+		get_word: char*, char** -> char*
+
+		The design of get_word was originally pretty straightforward.
+		Two char* variables, begin and end, represent the location in
+		memory to start reading the string at and the current position
+		in that string. The function removed all of the leading spaces
+		and tabs from the input, and set the beginning of the string 
+		to the first real character in the string. It then stepped 
+		through the string looking for a space, null byte, or other 
+		indication of an end of a word and set that location in memory 
+		to a null byte. By returnning the beginning of the string we 
+		effectively pass only the first word of the input out of the
+		function. 
+
+		As the shell grew more complex and we needed to implement 
+		escape characters and input/output redirection, we modified
+		the get_word funtion to look for special characters as it 
+		transversed the string and act accordingly to accommodate them.
+		
+
+		The getargs function takes in two arrays of charaters and an int, 
+		which represent the input string, the number of arguments in the
+		user's input, and the inputs themselves. It is a void function
+		
+		getargs: char cmd[], char *argv[], int *argcp -> VOID
+
+		like get_word, getargs started as a fairly simple function. The
+		main idea of the function was to call get_word using the user's
+		input (read from stdin) to get each individual argument by itself
+		before assigning them positions in the array of arguments. 
+
+		Again, as the shell grew more complex we needed to implement 
+		additional functionality to compare arguments to specific key
+		words and characters, such as '>' and '<'. 
+
+
+	After the input was parsed in such a way that made it easy to work with,
+	We set about implementing functionality for executing processes. The
+	function execute handles all of the calls to programs outside of the
+	shell, as well as part of read/write redirection and parent/child
+	process relationships. 
+		
+
+		execute takes in the array of arguemnts built in getargs, as well 
+		as the number of arguments in that array. As with getargs, calling
+		the function with the inputs as the argc and argv[] in main allowed
+		us to modify the number of arguments and and array of the arguments
+		themselves without having to return anything to main. This in turn
+		meant that the functions could be void. 
+
+		execute: int argc, char* argv[] -> VOID
+		
+		execute uses fork and waitpid to execute commands, waiting for the
+		exit of the child process (if there is one) before allowing the 
+		shell to return to the main while loop (in main) and issue a new 
+		prompt. It also handles the creation of new files in the event of 
+		output redirection and part of the functionality related to back-
+		ground processes. Finally, execute handles the throwing of any 
+		errors that might arise during the exection of commands. 
+	
+	The function do_exit() was provided in the original sample code, and simply
+	terminates the shell if the user provides the word "exit" as input. 
+		
+		do_exit: VOID -> VOID
+
+	Finally, we put everything together in main. As I mentioned before, we use
+	the argc and *argv[] from main in our other functions and allow those 
+	functions to directly edit argc and *argv[]. Not much actually happens in main. 
+	The user input is read from stdin and assigned to a variable, the cases in 
+	which the shell exits are checked for, and the prompt is written in a 
+	permanent loop until it is given some recognizable command. Main calls the 
+	functions that in turn drive the shell. 
+		
+SOME CHALLENGES: 
+
+	We faced a number of difficult challenges as we moved through the
+	various stages of the project. As with (I imagine) most groups, there
+	was always the problem of meeting to work on the code together and
+	ensuring we each always had the latest versions of eachother's work
+	(we used git for this). 
+	
+	While the implementation of escape characters was relatively easy, there
+	was one issue we ran into that was difficult to work around because of
+	the way we chose to parse the user's input.
+		
+		get_word essentially finds the first character of the
+		desired word and then steps through each character until it
+		finds the end of the word. When it reaches the end of the word
+		it sets that location in memory to a null byte, and returns
+		the beginning of the word. This meant that we were returning
+		essentially a block of memory that contained the desired string.
+		Because of this, it was difficult to replace the escape character
+		\_ with just _ , because we needed to replace two character with
+		one character, or somehow otherwise remove a character from the
+		middle of the word we were attempting to return. 
+
+		The immediate inclination was to simply move the pointer 
+		past the \ character, however this would not work because of our
+		prior imlpementation choices. We ended up having to measure
+		the length of the string, and then copy the first half of the 
+		word before the \ and the second half of the word after the \
+		to the same (different) location in memory. 
+
+	A second challenge we faced was the implementation of input/output redirection.
+	the majority of our issues in this area were simply because of unfamiliarity 
+	with the syntax of the pre-definied functions. We spent a significant amount
+	of time just reading manpages for things like open() and close(), stdin and 
+	stdout and stderr.
+
